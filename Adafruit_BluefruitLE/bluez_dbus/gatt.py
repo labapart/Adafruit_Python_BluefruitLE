@@ -42,6 +42,8 @@ class BluezGattService(GattService):
         """Create an instance of the GATT service from the provided bluez
         DBus object.
         """
+        self._obj = dbus_obj
+        self._service = dbus.Interface(dbus_obj, _SERVICE_INTERFACE)
         self._props = dbus.Interface(dbus_obj, 'org.freedesktop.DBus.Properties')
 
     @property
@@ -53,9 +55,9 @@ class BluezGattService(GattService):
         """Return list of GATT characteristics that have been discovered for this
         service.
         """
-        paths = self._props.Get(_SERVICE_INTERFACE, 'Characteristics')
         return map(BluezGattCharacteristic,
-                   get_provider()._get_objects_by_path(paths))
+            get_provider()._get_objects(_CHARACTERISTIC_INTERFACE,
+                                        self._service.object_path))
 
 
 class BluezGattCharacteristic(GattCharacteristic):
@@ -75,11 +77,11 @@ class BluezGattCharacteristic(GattCharacteristic):
 
     def read_value(self):
         """Read the value of this characteristic."""
-        return self._characteristic.ReadValue()
+        return self._characteristic.ReadValue({})
 
     def write_value(self, value):
         """Write the specified value to this characteristic."""
-        self._characteristic.WriteValue(value)
+        self._characteristic.WriteValue(value, {})
 
     def start_notify(self, on_change):
         """Enable notification of changes for this characteristic on the
