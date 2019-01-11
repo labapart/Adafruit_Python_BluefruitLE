@@ -40,14 +40,14 @@ class ServiceBase(object):
         it, or None if no device is found.  Will wait for up to timeout_sec
         seconds to find the device.
         """
-        return get_provider().find_device(service_uuids=cls.ADVERTISED, timeout_sec=timeout_sec)
+        return get_provider().find_device(service_uuids=cls.ADVERTISED, timeout_sec=timeout_sec, services_uuid_callbacks=cls.ADVERTISED_CALLBACK)
 
     @classmethod
     def find_devices(cls):
         """Find all the available devices that support this service and
         returns a list of them.  Does not poll and will return immediately.
         """
-        return get_provider().find_devices(cls.ADVERTISED)
+        return get_provider().find_devices(cls.ADVERTISED, services_uuid_callbacks=cls.ADVERTISED_CALLBACK)
 
     @classmethod
     def disconnect_devices(cls):

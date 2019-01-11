@@ -96,7 +96,7 @@ class Provider(object):
         else:
             return None
 
-    def find_devices(self, service_uuids=[], name=None):
+    def find_devices(self, service_uuids=[], services_uuid_callbacks=None, name=None):
         """Return devices that advertise the specified service UUIDs and/or have
         the specified name.  Service_uuids should be a list of Python uuid.UUID
         objects and is optional.  Name is a string device name to look for and is
@@ -118,11 +118,24 @@ class Provider(object):
                 # Check if the advertised UUIDs have at least the expected UUIDs.
                 actual = set(device.advertised)
                 if actual >= expected:
-                    found.append(device)
+                    # In case Service UUID Callbacks are provided we check them
+                    if services_uuid_callbacks is not None:
+                        is_valid = False
+                        for actual_uuid in actual:
+                            if (actual_uuid in expected) and (actual_uuid in services_uuid_callbacks):
+                                advertised_data = device.advertised_data(service_uuid = actual_uuid)
+                                is_valid = services_uuid_callbacks[actual_uuid](advertised_data)
+                                if not is_valid:
+                                    break
+
+                        if is_valid:
+                            found.append(device)
+                    else:
+                        found.append(device)
         return found
 
 
-    def find_device(self, service_uuids=[], name=None, timeout_sec=TIMEOUT_SEC):
+    def find_device(self, service_uuids=[], services_uuid_callbacks=None, name=None, timeout_sec=TIMEOUT_SEC):
         """Return the first device that advertises the specified service UUIDs or
         has the specified name. Will wait up to timeout_sec seconds for the device
         to be found, and if the timeout is zero then it will not wait at all and
@@ -132,7 +145,7 @@ class Provider(object):
         start = time.time()
         while True:
             # Call find_devices and grab the first result if any are found.
-            found = self.find_devices(service_uuids, name)
+            found = self.find_devices(service_uuids, services_uuid_callbacks, name)
             if len(found) > 0:
                 return found[0]
             # No device was found.  Check if the timeout is exceeded and wait to
