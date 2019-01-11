@@ -136,6 +136,23 @@ class BluezDevice(Device):
                 raise ex
         return [uuid.UUID(str(x)) for x in uuids]
 
+    def advertised_data(self, service_uuid):
+        """Return the data attached to the advertised Service UUID
+        """
+        uuids = []
+        # Get UUIDs property but wrap it in a try/except to catch if the property
+        # doesn't exist as it is optional.
+        try:
+            all_service_uuids = self._props.Get(_INTERFACE, 'ServiceData')
+            dbus_data = all_service_uuids[str(service_uuid)]
+            return [bytes([v]) for v in dbus_data]
+        except dbus.exceptions.DBusException as ex:
+            # Ignore error if device has no UUIDs property (i.e. might not be
+            # a BLE device).
+            if ex.get_dbus_name() != 'org.freedesktop.DBus.Error.InvalidArgs':
+                raise ex
+        return None
+
     @property
     def id(self):
         """Return a unique identifier for this device.  On supported platforms
