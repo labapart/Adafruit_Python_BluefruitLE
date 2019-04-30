@@ -33,7 +33,7 @@ from ..interfaces import Device
 from ..platform import get_provider
 
 from .adapter import _INTERFACE as _ADAPTER_INTERFACE
-from .gatt import BluezGattService, BluezGattCharacteristic, _SERVICE_INTERFACE, _CHARACTERISTIC_INTERFACE
+from .gatt import BluezGattService, BluezGattBatteryService, BluezGattCharacteristic, _SERVICE_INTERFACE, _CHARACTERISTIC_INTERFACE
 
 
 _INTERFACE = 'org.bluez.Device1'
@@ -46,6 +46,7 @@ class BluezDevice(Device):
         """Create an instance of the bluetooth device from the provided bluez
         DBus object.
         """
+        self._dbus_obj = dbus_obj
         self._device = dbus.Interface(dbus_obj, _INTERFACE)
         self._props = dbus.Interface(dbus_obj, 'org.freedesktop.DBus.Properties')
         self._connected = threading.Event()
@@ -90,6 +91,9 @@ class BluezDevice(Device):
         return map(BluezGattService,
                    get_provider()._get_objects(_SERVICE_INTERFACE,
                                                self._device.object_path))
+
+    def battery_service(self):
+        return BluezGattBatteryService(self._dbus_obj)
 
     def discover(self, service_uuids, char_uuids, timeout_sec=TIMEOUT_SEC):
         """Wait up to timeout_sec for the specified services and characteristics

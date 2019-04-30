@@ -33,7 +33,11 @@ from ..platform import get_provider
 _SERVICE_INTERFACE        = 'org.bluez.GattService1'
 _CHARACTERISTIC_INTERFACE = 'org.bluez.GattCharacteristic1'
 _DESCRIPTOR_INTERFACE     = 'org.bluez.GattDescriptor1'
+_BATTERY_INTERFACE        = 'org.bluez.Battery1'
 
+# Newer version of Bluez require to handle GATT Battery as a specific DBus object
+BAT_SERVICE_UUID = uuid.UUID('0000180F-0000-1000-8000-00805F9B34FB')
+BAT_LEVEL_CHAR_UUID = uuid.UUID('00002A19-0000-1000-8000-00805F9B34FB')
 
 class BluezGattService(GattService):
     """Bluez GATT service object."""
@@ -137,3 +141,46 @@ class BluezGattDescriptor(GattDescriptor):
     def read_value(self):
         """Read the value of this descriptor."""
         return self._descriptor.ReadValue()
+
+
+class BluezGattBatteryService(BluezGattService):
+    """Bluez GATT service object."""
+
+    def __init__(self, dbus_obj):
+        """Create an instance of the GATT service from the provided bluez
+        DBus object.
+        """
+        self._obj = dbus_obj
+        self._service = dbus.Interface(dbus_obj, _BATTERY_INTERFACE)
+        self._props = dbus.Interface(dbus_obj, 'org.freedesktop.DBus.Properties')
+
+    @property
+    def uuid(self):
+        """Return the UUID of this GATT service."""
+        return BAT_SERVICE_UUID
+
+    def list_characteristics(self):
+        """Return list of GATT characteristics that have been discovered for this
+        service.
+        """
+        return [ BluezGattBatteryLevelCharacteristic(self) ]
+
+
+class BluezGattBatteryLevelCharacteristic(BluezGattCharacteristic):
+    """Bluez GATT characteristic object."""
+
+    def __init__(self, battery_interface):
+        """Create an instance of the GATT characteristic from the provided bluez
+        DBus object.
+        """
+        self._battery = battery_interface
+
+    @property
+    def uuid(self):
+        """Return the UUID of this GATT characteristic."""
+        return BAT_LEVEL_CHAR_UUID
+
+    def read_value(self):
+        """Read the percentage of D-BUS object 'org.bluez.Battery1'"""
+        return self._battery._props.Get(_BATTERY_INTERFACE, 'Percentage')
+

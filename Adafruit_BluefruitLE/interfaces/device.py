@@ -22,7 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import abc
+import uuid
 
+# Newer version of Bluez require to handle GATT Battery as a specific DBus object
+BAT_SERVICE_UUID = uuid.UUID('0000180F-0000-1000-8000-00805F9B34FB')
 
 class Device(object):
     """Base class for a BLE device."""
@@ -91,6 +94,10 @@ class Device(object):
         for service in self.list_services():
             if service.uuid == uuid:
                 return service
+
+        if uuid == BAT_SERVICE_UUID and hasattr(self, 'battery_service'):
+            return self.battery_service()
+
         return None
 
     def __eq__(self, other):
