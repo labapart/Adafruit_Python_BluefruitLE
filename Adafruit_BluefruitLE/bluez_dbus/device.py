@@ -179,7 +179,13 @@ class BluezDevice(Device):
     @property
     def rssi(self):
         """Return the RSSI signal strength in decibels."""
-        return self._props.Get(_INTERFACE, 'RSSI')
+        try:
+            # We backup RSSI as sometimes the RSSI is not available (maybe when connected?)
+            self.backup_rssi = self._props.Get(_INTERFACE, 'RSSI')
+
+            return self.backup_rssi
+        except:
+            return self.backup_rssi
 
     @property
     def _adapter(self):
