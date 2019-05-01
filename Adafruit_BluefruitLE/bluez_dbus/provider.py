@@ -151,7 +151,9 @@ class BluezProvider(Provider):
         are disconnected.
         """
         service_uuids = set(service_uuids)
-        for device in self.list_devices():
+        devices = self.list_devices()
+        while len(devices) > 0:
+            device = devices.pop()
             # Skip devices that aren't connected.
             if not device.is_connected:
                 continue
@@ -159,7 +161,11 @@ class BluezProvider(Provider):
             if device_uuids >= service_uuids:
                 # Found a device that has at least the requested services, now
                 # disconnect from it.
-                device.disconnect()
+                try:
+                    # We ensure there is a small timeout to not lock the execution
+                    device.disconnect(timeout_sec=5)
+                except Exception as e:
+                    pass
 
     def list_adapters(self):
         """Return a list of BLE adapter objects connected to the system."""
