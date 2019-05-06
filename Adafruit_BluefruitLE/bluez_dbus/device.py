@@ -168,7 +168,10 @@ class BluezDevice(Device):
     @property
     def name(self):
         """Return the name of this device."""
-        return self._props.Get(_INTERFACE, 'Name')
+        try:
+            return self._props.Get(_INTERFACE, 'Name')
+        except:
+            return None
 
     @property
     def is_connected(self):
