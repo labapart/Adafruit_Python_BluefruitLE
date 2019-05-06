@@ -47,7 +47,11 @@ class ServiceBase(object):
         """Find all the available devices that support this service and
         returns a list of them.  Does not poll and will return immediately.
         """
-        return get_provider().find_devices(cls.ADVERTISED, services_uuid_callbacks=cls.ADVERTISED_CALLBACK)
+        if hasattr(cls, 'ADVERTISED_CALLBACK'):
+            return get_provider().find_devices(cls.ADVERTISED, services_uuid_callbacks=cls.ADVERTISED_CALLBACK)
+        else:
+            return get_provider().find_devices(cls.ADVERTISED)
+
 
     @classmethod
     def disconnect_devices(cls):
