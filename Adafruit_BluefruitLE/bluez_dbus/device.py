@@ -152,7 +152,11 @@ class BluezDevice(Device):
         try:
             all_service_uuids = self._props.Get(_INTERFACE, 'ServiceData')
             dbus_data = all_service_uuids[str(service_uuid)]
-            return [bytes([v]) for v in dbus_data]
+            bytearray = [bytes([v]) for v in dbus_data]
+            bytestring = b''
+            for b in bytearray:
+                bytestring += b
+            return bytestring
         except dbus.exceptions.DBusException as ex:
             # Ignore error if device has no UUIDs property (i.e. might not be
             # a BLE device).
