@@ -32,6 +32,11 @@ class Device(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
+    def close(self):
+        """Free BLE device resource."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def connect(self, timeout_sec):
         """Connect to the BLE device."""
         raise NotImplementedError

@@ -51,7 +51,10 @@ class BluezDevice(Device):
         self._props = dbus.Interface(dbus_obj, 'org.freedesktop.DBus.Properties')
         self._connected = threading.Event()
         self._disconnected = threading.Event()
-        self._props.connect_to_signal('PropertiesChanged', self._prop_changed)
+        self._props._props_signal = self._props.connect_to_signal('PropertiesChanged', self._prop_changed)
+
+    def close(self):
+        self._props._props_signal.remove()
 
     def _prop_changed(self, iface, changed_props, invalidated_props):
         # Handle property changes for the device.  Note this call happens in

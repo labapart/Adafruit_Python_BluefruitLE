@@ -50,6 +50,11 @@ class CoreBluetoothDevice(Device):
         self._discovered = threading.Event()
         self._rssi_read = threading.Event()
 
+    @abc.abstractmethod
+    def close(self):
+        """Free BLE device resource."""
+        pass
+
     @property
     def _central_manager(self):
         # Lookup the CBCentralManager, reduces verbosity of calls.
