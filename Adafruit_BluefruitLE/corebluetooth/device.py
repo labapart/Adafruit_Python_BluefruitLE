@@ -20,6 +20,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import logging
 from past.builtins import map
 import re
 import threading
@@ -33,6 +34,7 @@ from .gatt import CoreBluetoothGattService
 from .objc_helpers import cbuuid_to_uuid, nsuuid_to_uuid
 from .provider import device_list, service_list, characteristic_list, descriptor_list
 
+logger = logging.getLogger(__name__)
 
 m_standard_gatt = re.compile(r"0000(\w{4})-0000-1000-8000-00805f9b34fb")
 
@@ -67,6 +69,7 @@ class CoreBluetoothDevice(Device):
         """Connect to the device.  If not connected within the specified timeout
         then an exception is thrown.
         """
+        logger.debug('connect')
         self._central_manager.connectPeripheral_options_(self._peripheral, None)
         if not self._connected.wait(timeout_sec):
             raise RuntimeError('Failed to connect to device within timeout period!')
@@ -75,6 +78,7 @@ class CoreBluetoothDevice(Device):
         """Disconnect from the device.  If not disconnected within the specified
         timeout then an exception is thrown.
         """
+        logger.debug('disconnect')
         # Remove all the services, characteristics, and descriptors from the
         # lists of those items.  Do this before disconnecting because they wont't
         # be accessible afterwards.

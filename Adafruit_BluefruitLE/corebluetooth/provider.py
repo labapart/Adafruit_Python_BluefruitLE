@@ -75,7 +75,7 @@ class CentralDelegate(object):
         """Called when the BLE adapter is powered on and ready to scan/connect
         to devices.
         """
-        logger.debug('centralManagerDidUpdateState called')
+        logger.debug('centralManagerDidUpdateState called: %s' % manager.state())
         # Notify adapter about changed central state.
         get_provider()._adapter._state_changed(manager.state())
 
@@ -108,11 +108,15 @@ class CentralDelegate(object):
     def centralManager_didFailToConnectPeripheral_error_(self, manager, peripheral, error):
         # Error connecting to devie.  Ignored for now since connected event will
         # never fire and a timeout will elapse.
-        logger.debug('centralManager_didFailToConnectPeripheral_error called')
+        if error:
+            logger.error('centralManager_didFailToConnectPeripheral_error called: %s' % error)
 
     def centralManager_didDisconnectPeripheral_error_(self, manager, peripheral, error):
         """Called when a device is disconnected."""
-        logger.debug('centralManager_didDisconnectPeripheral called')
+        if error:
+            logger.error('centralManager_didDisconnectPeripheral called error:%s' % error)
+        else:
+            logger.debug('centralManager_didDisconnectPeripheral called')
         # Get the device and remove it from the device list, then fire its
         # disconnected event.
         device = device_list().get(peripheral)
@@ -138,10 +142,12 @@ class CentralDelegate(object):
 
     def peripheral_didDiscoverCharacteristicsForService_error_(self, peripheral, service, error):
         """Called when characteristics are discovered for a service."""
-        logger.debug('peripheral_didDiscoverCharacteristicsForService_error called')
         # Stop if there was some kind of error.
         if error is not None:
+            logger.error('peripheral_didDiscoverCharacteristicsForService_error called: %s' % error)
             return
+        else:
+            logger.debug('peripheral_didDiscoverCharacteristicsForService_error called')
         # Make sure the discovered characteristics are added to the list of known
         # characteristics, and kick off descriptor discovery for each char.
         for char in service.characteristics():
@@ -157,10 +163,12 @@ class CentralDelegate(object):
 
     def peripheral_didDiscoverDescriptorsForCharacteristic_error_(self, peripheral, characteristic, error):
         """Called when characteristics are discovered for a service."""
-        logger.debug('peripheral_didDiscoverDescriptorsForCharacteristic_error called')
         # Stop if there was some kind of error.
         if error is not None:
+            logger.error('peripheral_didDiscoverDescriptorsForCharacteristic_error called: error:%s' % error)
             return
+        else:
+            logger.debug('peripheral_didDiscoverDescriptorsForCharacteristic_error called')
         # Make sure the discovered descriptors are added to the list of known
         # descriptors.
         for desc in characteristic.descriptors():
@@ -170,18 +178,24 @@ class CentralDelegate(object):
 
     def peripheral_didWriteValueForCharacteristic_error_(self, peripheral, characteristic, error):
         # Characteristic write succeeded.  Ignored for now.
-        logger.debug('peripheral_didWriteValueForCharacteristic_error called')
+        if error is not None:
+            logger.error('peripheral_didWriteValueForCharacteristic_error called')
 
     def peripheral_didUpdateNotificationStateForCharacteristic_error_(self, peripheral, characteristic, error):
         # Characteristic notification state updated.  Ignored for now.
-        logger.debug('peripheral_didUpdateNotificationStateForCharacteristic_error called')
+        if error is not None:
+            logger.error('peripheral_didUpdateNotificationStateForCharacteristic_error called: %s' % error)
+        else:
+            logger.debug('peripheral_didUpdateNotificationStateForCharacteristic called characteristic:%s' % characteristic)
 
     def peripheral_didUpdateValueForCharacteristic_error_(self, peripheral, characteristic, error):
         """Called when characteristic value was read or updated."""
-        logger.debug('peripheral_didUpdateValueForCharacteristic_error called')
         # Stop if there was some kind of error.
         if error is not None:
+            logger.error('peripheral_didUpdateValueForCharacteristic_error called: %s' % error)
             return
+        else:
+            logger.debug('peripheral_didUpdateValueForCharacteristic_error called')
         # Notify the device about the updated characteristic value.
         device = device_list().get(peripheral)
         if device is not None:
@@ -189,10 +203,12 @@ class CentralDelegate(object):
 
     def peripheral_didUpdateValueForDescriptor_error_(self, peripheral, descriptor, error):
         """Called when descriptor value was read or updated."""
-        logger.debug('peripheral_didUpdateValueForDescriptor_error called')
         # Stop if there was some kind of error.
         if error is not None:
+            logger.error('peripheral_didUpdateValueForDescriptor_error called: %s' % error)
             return
+        else:
+            logger.debug('peripheral_didUpdateValueForDescriptor_error called')
         # Notify the device about the updated descriptor value.
         device = device_list().get(peripheral)
         if device is not None:
@@ -200,12 +216,12 @@ class CentralDelegate(object):
 
     def peripheral_didReadRSSI_error_(self, peripheral, rssi, error):
         """Called when a new RSSI value for the peripheral is available."""
-        logger.debug('peripheral_didReadRSSI_error called')
         # Note this appears to be completely undocumented at the time of this
         # writing.  Can see more details at:
         #  http://stackoverflow.com/questions/25952218/ios-8-corebluetooth-deprecated-rssi-methods
         # Stop if there was some kind of error.
         if error is not None:
+            logger.error('peripheral_didReadRSSI_error called')
             return
         # Notify the device about the updated RSSI value.
         device = device_list().get(peripheral)

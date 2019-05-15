@@ -76,11 +76,13 @@ class CoreBluetoothAdapter(Adapter):
 
     def start_scan(self, timeout_sec=TIMEOUT_SEC):
         """Start scanning for BLE devices."""
+        logger.debug('start_scan')
         get_provider()._central_manager.scanForPeripheralsWithServices_options_(None, None)
         self._is_scanning = True
 
     def stop_scan(self, timeout_sec=TIMEOUT_SEC):
         """Stop scanning for BLE devices."""
+        logger.debug('stop_scan')
         get_provider()._central_manager.stopScan()
         self._is_scanning = False
 
@@ -97,6 +99,7 @@ class CoreBluetoothAdapter(Adapter):
         if self.is_powered:
             return
 
+        logger.debug('power_on')
         # Turn on bluetooth and wait for powered on event to be set.
         self._powered_on.clear()
         IOBluetoothPreferenceSetControllerPowerState(1)
@@ -110,6 +113,7 @@ class CoreBluetoothAdapter(Adapter):
         if not self.is_powered:
             return
 
+        logger.debug('power_off')
         # Turn off bluetooth.
         self._powered_off.clear()
         IOBluetoothPreferenceSetControllerPowerState(0)
