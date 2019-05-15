@@ -93,6 +93,10 @@ class CoreBluetoothAdapter(Adapter):
 
     def power_on(self, timeout_sec=TIMEOUT_SEC):
         """Power on Bluetooth."""
+        # In case the adapter is already powered on - do nothing
+        if self.is_powered:
+            return
+
         # Turn on bluetooth and wait for powered on event to be set.
         self._powered_on.clear()
         IOBluetoothPreferenceSetControllerPowerState(1)
@@ -101,6 +105,11 @@ class CoreBluetoothAdapter(Adapter):
 
     def power_off(self, timeout_sec=TIMEOUT_SEC):
         """Power off Bluetooth."""
+
+        # In case the adapter is already powered off - do nothing
+        if not self.is_powered:
+            return
+
         # Turn off bluetooth.
         self._powered_off.clear()
         IOBluetoothPreferenceSetControllerPowerState(0)
