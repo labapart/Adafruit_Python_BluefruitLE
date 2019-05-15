@@ -114,11 +114,15 @@ class Provider(object):
                 if device.name == name:
                     # Check if the name matches and add the device.
                     found.append(device)
+                else:
+                    device.close()
             else:
                 # Check if the advertised UUIDs have at least the expected UUIDs.
                 actual = set(device.advertised)
                 if actual >= expected:
                     found.append(device)
+                else:
+                    device.close()
         return found
 
 
