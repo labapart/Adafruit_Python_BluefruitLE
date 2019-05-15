@@ -21,7 +21,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from past.builtins import map
+import re
 import threading
+import uuid
 
 from ..config import TIMEOUT_SEC
 from ..interfaces import Device
@@ -31,6 +33,8 @@ from .gatt import CoreBluetoothGattService
 from .objc_helpers import cbuuid_to_uuid, nsuuid_to_uuid
 from .provider import device_list, service_list, characteristic_list, descriptor_list
 
+
+m_standard_gatt = re.compile(r"0000(\w{4})-0000-1000-8000-00805f9b34fb")
 
 class CoreBluetoothDevice(Device):
     """CoreBluetooth BLE device."""
@@ -50,7 +54,6 @@ class CoreBluetoothDevice(Device):
         self._discovered = threading.Event()
         self._rssi_read = threading.Event()
 
-    @abc.abstractmethod
     def close(self):
         """Free BLE device resource."""
         pass
@@ -102,6 +105,8 @@ class CoreBluetoothDevice(Device):
         # name from advertisement data.
         if 'kCBAdvDataServiceUUIDs' in advertised:
             self._advertised = self._advertised + map(cbuuid_to_uuid, advertised['kCBAdvDataServiceUUIDs'])
+        if 'kCBAdvDataServiceData' in advertised:
+            self._advertised_data = advertised['kCBAdvDataServiceData']
 
     def _characteristics_discovered(self, service):
         """Called when GATT characteristics have been discovered."""
@@ -168,6 +173,21 @@ class CoreBluetoothDevice(Device):
         device.
         """
         return self._advertised
+
+    def advertised_data(self, service_uuid):
+        uuid16 = m_standard_gatt.findall(str(service_uuid))
+        if len(uuid16) > 0:
+            uuid16 = uuid16[0].upper()
+        else:
+            uuid16 = None
+
+        for key, value in self._advertised_data.items():
+            if uuid16 and str(uuid16) == str(key):
+                return list(value)
+            elif str(key) == str(service_uuid):
+                return list(value)
+
+        return None
 
     @property
     def id(self):
