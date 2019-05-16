@@ -22,6 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from past.builtins import map
+import logging
 import threading
 import time
 import uuid
@@ -38,6 +39,12 @@ from .gatt import BluezGattService, BluezGattBatteryService, BluezGattCharacteri
 
 _INTERFACE = 'org.bluez.Device1'
 
+# It might exist a race condition when the user try to access a DBUS method attach
+# to Bluez Device that is being loaded
+DBUS_METHOD_ACCESS_TENTATIVE = 3
+DBUS_METHOD_ACCESS_TIMEOUT = 1
+
+logger = logging.getLogger(__name__)
 
 class BluezDevice(Device):
     """Bluez BLE device."""
@@ -83,7 +90,12 @@ class BluezDevice(Device):
         timeout then an exception is thrown.
         """
         self._disconnected.clear()
-        self._device.Disconnect()
+        try:
+            self._device.Disconnect()
+            logger.debug("Disconnected")
+        except dbus.exceptions.DBusException as ex:
+            logger.error("Exception during disconnection: %s" % ex)
+            return
         if not self._disconnected.wait(timeout_sec):
             raise RuntimeError('Exceeded timeout waiting to disconnect from device!')
 
@@ -164,13 +176,27 @@ class BluezDevice(Device):
                 raise ex
         return None
 
+    def _prop_get(self, name):
+        last_exception = None
+
+        for i in range(0, DBUS_METHOD_ACCESS_TENTATIVE):
+            try:
+                return self._props.Get(_INTERFACE, name)
+            except dbus.exceptions.DBusException as e:
+                last_exception = e
+                logging.error("Fail to access attribute '%s' (tentative: %d): %s" % (name, i, e))
+                time.sleep(DBUS_METHOD_ACCESS_TIMEOUT)
+
+        # In case we did not manage to retrieve the attribute then we raise the last exception
+        raise last_exception
+
     @property
     def id(self):
         """Return a unique identifier for this device.  On supported platforms
         this will be the MAC address of the device, however on unsupported
         platforms (Mac OSX) it will be a unique ID like a UUID.
         """
-        return self._props.Get(_INTERFACE, 'Address')
+        return self._prop_get('Address')
 
     @property
     def name(self):
@@ -184,7 +210,7 @@ class BluezDevice(Device):
     def is_connected(self):
         """Return True if the device is connected to the system, otherwise False.
         """
-        return self._props.Get(_INTERFACE, 'Connected')
+        return self._prop_get('Connected')
 
     @property
     def rssi(self):
@@ -200,4 +226,4 @@ class BluezDevice(Device):
     @property
     def _adapter(self):
         """Return the DBus path to the adapter that owns this device."""
-        return self._props.Get(_INTERFACE, 'Adapter')
+        return self._prop_get('Adapter')
