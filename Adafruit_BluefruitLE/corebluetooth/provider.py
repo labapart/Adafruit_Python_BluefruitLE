@@ -91,7 +91,7 @@ class CentralDelegate(object):
         device = device_list().get(peripheral)
         if device is None:
             device = device_list().add(peripheral, CoreBluetoothDevice(peripheral))
-        device._update_advertised(data)
+        device._update_advertised(data, rssi)
 
     def centralManager_didConnectPeripheral_(self, manager, peripheral):
         """Called when a device is connected."""

@@ -103,7 +103,7 @@ class CoreBluetoothDevice(Device):
         self._connected.clear()
         self._disconnected.set()
 
-    def _update_advertised(self, advertised):
+    def _update_advertised(self, advertised, rssi=None):
         """Called when advertisement data is received."""
         # Advertisement data was received, pull out advertised service UUIDs and
         # name from advertisement data.
@@ -111,6 +111,8 @@ class CoreBluetoothDevice(Device):
             self._advertised = self._advertised + map(cbuuid_to_uuid, advertised['kCBAdvDataServiceUUIDs'])
         if 'kCBAdvDataServiceData' in advertised:
             self._advertised_data = advertised['kCBAdvDataServiceData']
+        if rssi:
+            self._rssi = rssi
 
     def _characteristics_discovered(self, service):
         """Called when GATT characteristics have been discovered."""
@@ -213,8 +215,14 @@ class CoreBluetoothDevice(Device):
         return self._connected.is_set()
 
     @property
-    def rssi(self, timeout_sec=TIMEOUT_SEC):
+    def rssi(self):
+        self.rssi()
+
+    def get_rssi(self, timeout_sec=TIMEOUT_SEC):
         """Return the RSSI signal strength in decibels."""
+        if timeout_sec == 0:
+            return self._rssi
+
         # Kick off query to get RSSI, then wait for it to return asyncronously
         # when the _rssi_changed() function is called.
         self._rssi_read.clear()

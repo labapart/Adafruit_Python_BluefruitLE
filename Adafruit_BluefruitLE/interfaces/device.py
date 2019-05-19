@@ -92,6 +92,10 @@ class Device(object):
         """Return the RSSI signal strength in decibels."""
         raise NotImplementedError
 
+    def get_rssi(self, timeout_sec):
+        """Return the RSSI signal strength in decibels."""
+        raise NotImplementedError
+
     def find_service(self, uuid):
         """Return the first child service found that has the specified
         UUID.  Will return None if no service that matches is found.

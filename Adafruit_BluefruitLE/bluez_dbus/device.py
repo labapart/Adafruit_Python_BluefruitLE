@@ -223,6 +223,9 @@ class BluezDevice(Device):
         except:
             return self.backup_rssi
 
+    def get_rssi(self, timeout_sec=TIMEOUT_SEC):
+        return self.rssi
+
     @property
     def _adapter(self):
         """Return the DBus path to the adapter that owns this device."""
