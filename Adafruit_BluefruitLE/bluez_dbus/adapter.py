@@ -86,7 +86,11 @@ class BluezAdapter(Adapter):
 
     def power_on(self):
         """Power on this BLE adapter."""
-        return self._props.Set(_INTERFACE, 'Powered', True)
+        try:
+            return self._props.Set(_INTERFACE, 'Powered', True)
+        except dbus.exceptions.DBusException as e:
+            print("DBUS Exception: %s" % e)
+            return True
 
     def power_off(self):
         """Power off this BLE adapter."""
