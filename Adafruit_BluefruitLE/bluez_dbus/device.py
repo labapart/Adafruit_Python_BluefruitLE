@@ -70,7 +70,7 @@ class BluezDevice(Device):
         if iface != _INTERFACE:
             return
         # If connected then fire the connected event.
-        if 'Connected' in changed_props and changed_props['Connected'] == 1:
+        if 'ServicesResolved' in changed_props and changed_props['ServicesResolved'] == 1:
             self._connected.set()
         # If disconnected then fire the disconnected event.
         if 'Connected' in changed_props and changed_props['Connected'] == 0:
