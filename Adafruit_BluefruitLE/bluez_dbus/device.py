@@ -72,9 +72,11 @@ class BluezDevice(Device):
         # If connected then fire the connected event.
         if 'ServicesResolved' in changed_props and changed_props['ServicesResolved'] == 1:
             self._connected.set()
+            self._disconnected.clear()
         # If disconnected then fire the disconnected event.
         if 'Connected' in changed_props and changed_props['Connected'] == 0:
             self._disconnected.set()
+            self._connected.clear()
 
     def connect(self, timeout_sec=TIMEOUT_SEC):
         """Connect to the device.  If not connected within the specified timeout
@@ -210,7 +212,7 @@ class BluezDevice(Device):
     def is_connected(self):
         """Return True if the device is connected to the system, otherwise False.
         """
-        return self._prop_get('Connected')
+        return self._connected.is_set()
 
     @property
     def rssi(self):
