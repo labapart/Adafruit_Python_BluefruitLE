@@ -207,7 +207,13 @@ class BluezDevice(Device):
         this will be the MAC address of the device, however on unsupported
         platforms (Mac OSX) it will be a unique ID like a UUID.
         """
-        return self._prop_get('Address')
+        try:
+            # We backup 'Address' as sometimes it might not be available (eg: in case the device disapeared)
+            self.backup_address = self._props.Get(_INTERFACE, 'Address')
+
+            return self.backup_address
+        except:
+            return self.backup_address
 
     @property
     def name(self):
