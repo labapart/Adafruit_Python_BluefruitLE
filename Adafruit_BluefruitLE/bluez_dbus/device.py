@@ -46,6 +46,15 @@ DBUS_METHOD_ACCESS_TIMEOUT = 1
 
 logger = logging.getLogger(__name__)
 
+
+class BluezDeviceConnectionTimeout(Exception):
+    pass
+
+
+class BluezDeviceDisconnectionTimeout(Exception):
+    pass
+
+
 class BluezDevice(Device):
     """Bluez BLE device."""
 
@@ -85,7 +94,7 @@ class BluezDevice(Device):
         self._connected.clear()
         self._device.Connect()
         if not self._connected.wait(timeout_sec):
-            raise RuntimeError('Exceeded timeout waiting to connect to device!')
+            raise BluezDeviceConnectionTimeout()
 
     def disconnect(self, timeout_sec=TIMEOUT_SEC):
         """Disconnect from the device.  If not disconnected within the specified
@@ -99,7 +108,7 @@ class BluezDevice(Device):
             logger.error("Exception during disconnection: %s" % ex)
             return
         if not self._disconnected.wait(timeout_sec):
-            raise RuntimeError('Exceeded timeout waiting to disconnect from device!')
+            raise BluezDeviceDisconnectionTimeout()
 
     def list_services(self):
         """Return a list of GattService objects that have been discovered for
