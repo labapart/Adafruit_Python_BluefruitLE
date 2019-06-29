@@ -10,7 +10,7 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
@@ -54,9 +54,11 @@ class BluezAdapter(Adapter):
         # If scanning starts then fire the scan started event.
         if 'Discovering' in changed_props and changed_props['Discovering'] == 1:
             self._scan_started.set()
+            self._scan_stopped.clear()
         # If scanning stops then fire the scan stopped event.
         if 'Discovering' in changed_props and changed_props['Discovering'] == 0:
             self._scan_stopped.set()
+            self._scan_started.clear()
 
     @property
     def name(self):
