@@ -145,6 +145,9 @@ class BluezProvider(Provider):
             # bluez's DBus hierarchy.
             adapter.RemoveDevice(device._device.object_path)
 
+            # Ensure the signals are disconnected
+            device.close()
+
     def disconnect_devices(self, service_uuids=[]):
         """Disconnect any connected devices that have the specified list of
         service UUIDs.  The default is an empty list which means all devices
@@ -166,6 +169,8 @@ class BluezProvider(Provider):
                     device.disconnect(timeout_sec=5)
                 except Exception as e:
                     pass
+
+            device.close()
 
     def list_adapters(self):
         """Return a list of BLE adapter objects connected to the system."""
