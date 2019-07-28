@@ -51,6 +51,10 @@ class BluezDeviceConnectionTimeout(Exception):
     pass
 
 
+class BluezDeviceNotFound(Exception):
+    pass
+
+
 class BluezDeviceDisconnectionTimeout(Exception):
     pass
 
@@ -92,7 +96,15 @@ class BluezDevice(Device):
         then an exception is thrown.
         """
         self._connected.clear()
-        self._device.Connect()
+
+        try:
+            self._device.Connect()
+        except dbus.exceptions.DBusException as ex:
+            if ex.get_dbus_name() == 'org.freedesktop.DBus.Error.UnknownObject':
+                raise BluezDeviceNotFound()
+            else:
+                raise ex
+
         if not self._connected.wait(timeout_sec):
             raise BluezDeviceConnectionTimeout()
 
