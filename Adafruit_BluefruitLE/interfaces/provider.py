@@ -96,7 +96,7 @@ class Provider(object):
         else:
             return None
 
-    def find_devices(self, service_uuids=[], services_uuid_callbacks=None, name=None):
+    def find_devices(self, service_uuids=[], services_uuid_callbacks=None, name=None, mac=None):
         """Return devices that advertise the specified service UUIDs and/or have
         the specified name.  Service_uuids should be a list of Python uuid.UUID
         objects and is optional.  Name is a string device name to look for and is
@@ -110,7 +110,13 @@ class Provider(object):
         # Filter to just the devices that have the requested service UUID/name.
         found = []
         for device in devices:
-            if name is not None:
+            if mac is not None:
+                if device.id.lower() == mac.lower():
+                    # Check if the name matches and add the device.
+                    found.append(device)
+                else:
+                    device.close()
+            elif name is not None:
                 if device.name == name:
                     # Check if the name matches and add the device.
                     found.append(device)
@@ -140,8 +146,7 @@ class Provider(object):
                     device.close()
         return found
 
-
-    def find_device(self, service_uuids=[], services_uuid_callbacks=None, name=None, timeout_sec=TIMEOUT_SEC):
+    def find_device(self, service_uuids=[], services_uuid_callbacks=None, name=None, mac=None, timeout_sec=TIMEOUT_SEC):
         """Return the first device that advertises the specified service UUIDs or
         has the specified name. Will wait up to timeout_sec seconds for the device
         to be found, and if the timeout is zero then it will not wait at all and
@@ -151,7 +156,7 @@ class Provider(object):
         start = time.time()
         while True:
             # Call find_devices and grab the first result if any are found.
-            found = self.find_devices(service_uuids, services_uuid_callbacks, name)
+            found = self.find_devices(service_uuids, services_uuid_callbacks, name, mac)
             if len(found) > 0:
                 return found[0]
             # No device was found.  Check if the timeout is exceeded and wait to
