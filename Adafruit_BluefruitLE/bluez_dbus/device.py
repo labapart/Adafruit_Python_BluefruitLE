@@ -224,8 +224,11 @@ class BluezDevice(Device):
             self.backup_address = self._props.Get(_INTERFACE, 'Address')
 
             return self.backup_address
-        except:
-            return self.backup_address
+        except Exception as e:
+            if hasattr(self, 'backup_address'):
+                return self.backup_address
+            else:
+                raise e
 
     @property
     def name(self):
