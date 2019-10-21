@@ -43,7 +43,10 @@ class BluezAdapter(Adapter):
         self._props = dbus.Interface(dbus_obj, 'org.freedesktop.DBus.Properties')
         self._scan_started = threading.Event()
         self._scan_stopped = threading.Event()
-        self._props.connect_to_signal('PropertiesChanged', self._prop_changed)
+        self._props_signal = self._props.connect_to_signal('PropertiesChanged', self._prop_changed)
+
+    def close(self):
+        self._props_signal.remove()
 
     def _prop_changed(self, iface, changed_props, invalidated_props):
         # Handle property changes for the adapter.  Note this call happens in

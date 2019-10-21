@@ -106,13 +106,14 @@ class BluezGattCharacteristic(GattCharacteristic):
             # Send the new value to the on_change callback.
             on_change(''.join(map(chr, changed_props['Value'])))
         # Hook up the property changed signal to call the closure above.
-        self._props.connect_to_signal('PropertiesChanged', characteristic_changed)
+        self._props_signal = self._props.connect_to_signal('PropertiesChanged', characteristic_changed)
         # Enable notifications for changes on the characteristic.
         self._characteristic.StartNotify()
 
     def stop_notify(self):
         """Disable notification of changes for this characteristic."""
         self._characteristic.StopNotify()
+        self._props_signal.remove()
 
     def list_descriptors(self):
         """Return list of GATT descriptors that have been discovered for this
