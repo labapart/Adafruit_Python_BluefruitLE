@@ -228,7 +228,10 @@ class BluezDevice(Device):
             if hasattr(self, 'backup_address'):
                 return self.backup_address
             else:
-                raise e
+                if e.get_dbus_name() == 'org.freedesktop.DBus.Error.UnknownObject':
+                    raise BluezDeviceNotFound()
+                else:
+                    raise e
 
     @property
     def name(self):
