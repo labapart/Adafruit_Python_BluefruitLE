@@ -87,6 +87,10 @@ class BluezGattCharacteristic(GattCharacteristic):
         """Write the specified value to this characteristic."""
         self._characteristic.WriteValue(value, {})
 
+    def write_without_response_value(self, value):
+        """WriteWithoutResponse the specified value to this characteristic."""
+        self._characteristic.WriteValue(value, { "type": "command" })
+
     def start_notify(self, on_change):
         """Enable notification of changes for this characteristic on the
         specified on_change callback.  on_change should be a function that takes

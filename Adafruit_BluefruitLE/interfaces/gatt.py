@@ -71,6 +71,11 @@ class GattCharacteristic(object):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def write_without_response_value(self, value):
+        """WriteWithoutResponse the specified value to this characteristic."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def start_notify(self, on_change):
         """Enable notification of changes for this characteristic on the
         specified on_change callback.  on_change should be a function that takes
