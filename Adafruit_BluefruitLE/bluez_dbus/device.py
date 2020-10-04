@@ -71,7 +71,17 @@ class BluezDevice(Device):
         self._props = dbus.Interface(dbus_obj, 'org.freedesktop.DBus.Properties')
         self._connected = threading.Event()
         self._disconnected = threading.Event()
+        self._disconnected_callback = None
+        self._expected_disconnection = False
         self._props._props_signal = self._props.connect_to_signal('PropertiesChanged', self._prop_changed)
+
+    def set_disconnection_callback(self, callback):
+        """
+        Set a callback to be called on BLE disconnection.
+
+        This callback expects a boolean to be passed defining if the disconnection is expected.
+        """
+        self._disconnected_callback = callback
 
     def close(self):
         self._props._props_signal.remove()
@@ -91,11 +101,15 @@ class BluezDevice(Device):
             self._disconnected.set()
             self._connected.clear()
 
+            if self._disconnected_callback:
+                self._disconnected_callback(self._expected_disconnection)
+
     def connect(self, timeout_sec=TIMEOUT_SEC):
         """Connect to the device.  If not connected within the specified timeout
         then an exception is thrown.
         """
         self._connected.clear()
+        self._expected_disconnection = False
 
         try:
             self._device.Connect()
@@ -113,6 +127,8 @@ class BluezDevice(Device):
         timeout then an exception is thrown.
         """
         self._disconnected.clear()
+        self._expected_disconnection = True
+
         try:
             self._device.Disconnect()
             logger.debug("Disconnected")
