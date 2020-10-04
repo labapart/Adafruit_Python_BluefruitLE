@@ -39,6 +39,10 @@ _BATTERY_INTERFACE        = 'org.bluez.Battery1'
 BAT_SERVICE_UUID = uuid.UUID('0000180F-0000-1000-8000-00805F9B34FB')
 BAT_LEVEL_CHAR_UUID = uuid.UUID('00002A19-0000-1000-8000-00805F9B34FB')
 
+class BluezGattDisconnection(Exception):
+    pass
+
+
 class BluezGattService(GattService):
     """Bluez GATT service object."""
 
@@ -85,7 +89,13 @@ class BluezGattCharacteristic(GattCharacteristic):
 
     def write_value(self, value):
         """Write the specified value to this characteristic."""
-        self._characteristic.WriteValue(value, {})
+        try:
+            self._characteristic.WriteValue(value, {})
+        except dbus.exceptions.DBusException as ex:
+            if ex.get_dbus_name() == 'org.bluez.Error.Failed' and ex.get_dbus_message() == "Not connected":
+                raise BluezGattDisconnection()
+            else:
+                raise ex
 
     def write_without_response_value(self, value):
         """WriteWithoutResponse the specified value to this characteristic."""
